@@ -1,5 +1,6 @@
 package com.example.robot
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,8 +9,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.robot.ui.theme.PsBackground
+import com.example.robot.ui.theme.PsBlue
 import com.example.robot.ui.theme.RobotTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             RobotTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Surface(modifier = Modifier.fillMaxSize(), color = PsBackground) {
                     HomeScreen()
                 }
             }
@@ -26,18 +32,13 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Preview(
+    showBackground = true,
+    showSystemUi = true
+)
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-            text = "Hello $name!",
-            modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
+fun HomeScreenPreview() {
     RobotTheme {
-        Greeting("Android")
+        HomeScreen()
     }
 }

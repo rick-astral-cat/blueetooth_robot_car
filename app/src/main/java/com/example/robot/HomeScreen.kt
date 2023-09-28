@@ -1,11 +1,13 @@
 package com.example.robot
 
+import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +30,30 @@ import kotlin.math.*
 
 @Composable
 fun HomeScreen() {
+    var orientation by remember { mutableStateOf(Configuration.ORIENTATION_PORTRAIT) }
+    val configuration = LocalConfiguration.current
+
+    // If our configuration changes then this will launch a new coroutine scope for it
+    LaunchedEffect(configuration) {
+        // Save any changes to the orientation value on the configuration object
+        snapshotFlow { configuration.orientation }
+            .collect { orientation = it }
+    }
+
+    //Detect phone orientation
+    when (orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            LandscapeContent()
+        }
+        else -> {
+            PortraitMessage()
+        }
+    }
+
+}
+
+@Composable
+fun LandscapeContent(){
     // Support RTL
     val layoutDirection = LocalLayoutDirection.current
     val directionFactor = if (layoutDirection == LayoutDirection.Rtl) -1 else 1
@@ -201,7 +228,6 @@ fun HomeScreen() {
 
 
     }
-
 }
 
 @Composable
@@ -225,10 +251,7 @@ fun MyButton(
     }
 }
 
-@Preview
 @Composable
-fun HomeScreenPreview() {
-    RobotTheme {
-        HomeScreen()
-    }
+fun PortraitMessage(modifier: Modifier = Modifier){
+    Text(text = "Ayudame")
 }
