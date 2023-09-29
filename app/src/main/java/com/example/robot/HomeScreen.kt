@@ -3,6 +3,7 @@ package com.example.robot
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
@@ -16,13 +17,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.robot.shapes.DrawShape
 import com.example.robot.ui.theme.RobotTheme
 import kotlinx.coroutines.launch
@@ -253,5 +258,27 @@ fun MyButton(
 
 @Composable
 fun PortraitMessage(modifier: Modifier = Modifier){
-    Text(text = "Ayudame")
+    val image = painterResource(id = R.drawable.tank)
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Curex 1",
+            fontSize = 60.sp,
+            color = Color.White
+        )
+        Image(
+            painter = image,
+
+            modifier = Modifier.width(250.dp),
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.size(30.dp))
+        Text(
+            text = "Turn your cell phone to start playing",
+            color = Color.White
+        )
+    }
 }
