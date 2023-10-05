@@ -21,15 +21,22 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -82,6 +89,14 @@ fun HomeScreen() {
 
 @Composable
 fun LandscapeContent(){
+    //Logs from commands and bluetooth buffer
+    val bLog = remember { mutableStateListOf("Curex 1 logs!") }
+    var commandSent by remember{ mutableStateOf(false) }
+    var currentDirection by remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
+    LaunchedEffect(bLog.size){
+        scrollState.animateScrollTo(scrollState.maxValue)
+    }
     // Support RTL
     val layoutDirection = LocalLayoutDirection.current
     val directionFactor = if (layoutDirection == LayoutDirection.Rtl) -1 else 1
@@ -148,12 +163,12 @@ fun LandscapeContent(){
             //Bluetooth status
             Row(
                 modifier = Modifier.weight(1F),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Canvas(
                     modifier = Modifier
                         .size(size = 30.dp)
-                        .border(color = Color.Magenta, width = 2.dp)
                 ){
                     drawCircle(
                         color = Color.Red,
@@ -171,8 +186,7 @@ fun LandscapeContent(){
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1F)
-                .border(BorderStroke(1.dp, Color.White)),
+                .weight(1F),
             verticalAlignment = Alignment.CenterVertically
         ){
             Box(
@@ -191,7 +205,7 @@ fun LandscapeContent(){
                     Box(
                         modifier = Modifier
                             .size(buttonSize * 3)
-                            .background(Color.Blue, CircleShape)
+                            .background(Color.White, CircleShape)
                         ,
                         contentAlignment = Alignment.Center
                     ) {
@@ -209,10 +223,10 @@ fun LandscapeContent(){
                                 .alpha(0.8f)
                                 .background(Color.DarkGray, CircleShape)
                                 .pointerInput(Unit) {
-
                                     detectDragGestures(
                                         onDragStart = {
                                             isDragging = true
+                                            commandSent = false
                                         },
                                         onDragEnd = {
                                             scope.launch {
@@ -222,6 +236,9 @@ fun LandscapeContent(){
                                                 offsetY.animateTo(0f)
                                             }
                                             isDragging = false
+                                            commandSent = false
+                                            bLog.add("Stopping Car...")
+                                            currentDirection = ""
                                         },
                                         onDragCancel = {
                                             scope.launch {
@@ -231,6 +248,9 @@ fun LandscapeContent(){
                                                 offsetY.animateTo(0f)
                                             }
                                             isDragging = false
+                                            commandSent = false
+                                            bLog.add("Stopping Car...")
+                                            currentDirection = ""
                                         },
                                         onDrag = { change, dragAmount ->
                                             change.consume()
@@ -275,7 +295,7 @@ fun LandscapeContent(){
                         }
 
                         Position.values().forEach { position ->
-                            val offset = position.getOffset(buttonSizePx)
+                            val offset = position.getOffset(buttonSizePx - 50)
                             MyButton(
                                 modifier = Modifier
                                     .offset {
@@ -306,15 +326,16 @@ fun LandscapeContent(){
             Column(
                 modifier = Modifier
                     .weight(1F)
-                    .border(BorderStroke(1.dp, Color.Cyan))
                     .fillMaxSize()
             ) {
                 Row {
                     //Logs and connection buttons
                     Column(
-                        modifier = Modifier.weight(1F)
+                        modifier = Modifier.weight(1F),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        //Preview of the pressed control
+                        //Preview of the pressed joystick button
+                        Spacer(modifier = Modifier.size(20.dp))
                         Box(modifier = Modifier.size(buttonSize * 1)) {
                             currentPosition?.let { position ->
                                 Box(
@@ -331,37 +352,85 @@ fun LandscapeContent(){
                                         isSelected = true
                                     )
                                 }
+                                if(position.name == "Top" && currentDirection != position.name){
+                                    bLog.add("Moving Forward")
+                                    currentDirection = "Top"
+                                    commandSent = true
+                                }
+                                else if (position.name == "Bottom" && currentDirection != position.name){
+                                    bLog.add("Moving back")
+                                    currentDirection = "Bottom"
+                                    commandSent = true
+                                }
+                                else if (position.name == "Left" && currentDirection != position.name){
+                                    bLog.add("Turning Left")
+                                    currentDirection = "Left"
+                                    commandSent = true
+                                }
+                                else if (position.name == "Right" && currentDirection != position.name){
+                                    bLog.add("Turning Right")
+                                    currentDirection = "Right"
+                                    commandSent = true
+                                }
                             }
                         }
+                        Spacer(modifier = Modifier.size(20.dp))
+                        Text(
+                            text = "Bluetooth settings",
+                            color = Color.White
+                        )
+                        OutlinedButton(onClick = {  }) {
+                            Text(
+                                text = "Connect to Curex 1"
+                            )
+                        }
+                        Spacer(modifier = Modifier.size(5.dp))
+                        Card(
+                            modifier = Modifier
+                                .verticalScroll(scrollState)
+                                .fillMaxWidth()
+                                .weight(1F)
+                        ) {
+                            bLog.forEach{
+                                Text(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .padding(0.dp),
+                                text = it)
+                            }
+                        }
+                        Spacer(modifier = Modifier.size(10.dp))
                     }
+
                     //Buttons for servo motor
                     Column(
                         modifier = Modifier
                             .width(120.dp)
-                            .border(BorderStroke(1.dp, Color.Red))
                             .fillMaxHeight()
                             .padding(10.dp)
                             ,
-                            verticalArrangement = Arrangement.SpaceAround
+                            verticalArrangement = Arrangement.SpaceAround,
+                            horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Button(
-                            onClick = {  },
+                        Text(text = "Gripper", color = Color.White)
+                        OutlinedButton(
+                            onClick = { bLog.add("Moving servo up") },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(60.dp)
                         ) {
                             Text(text = "Up")
                         }
-                        Button(
-                            onClick = {  },
+                        OutlinedButton(
+                            onClick = { bLog.add("Moving servo center") },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(60.dp)
                         ) {
                             Text(text = "Center")
                         }
-                        Button(
-                            onClick = {  },
+                        OutlinedButton(
+                            onClick = { bLog.add("Moving servo down") },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(60.dp)
@@ -372,7 +441,7 @@ fun LandscapeContent(){
                 }
             }
         }
-    }         
+    }
 
 }
 
