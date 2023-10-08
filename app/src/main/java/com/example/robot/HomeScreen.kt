@@ -122,7 +122,7 @@ fun LandscapeContent(){
 
         val newPosition = getPosition(
             offset = Offset(offsetX.value, offsetY.value),
-            buttonSizePx = buttonSizePx
+            buttonSizePx = buttonSizePx-100
         )
 
         currentPosition = newPosition
