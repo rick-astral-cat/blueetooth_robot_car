@@ -1,6 +1,7 @@
 package com.example.robot
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -125,6 +126,9 @@ fun LandscapeContent(){
         )
 
         currentPosition = newPosition
+        if(offsetX.value.toDouble() == 0.0 && offsetY.value.toDouble() == 0.0){
+            bLog.add("Stopping Car...")
+        }
     }
     Column(
         modifier = Modifier.fillMaxSize()
@@ -237,7 +241,6 @@ fun LandscapeContent(){
                                             }
                                             isDragging = false
                                             commandSent = false
-                                            bLog.add("Stopping Car...")
                                             currentDirection = ""
                                         },
                                         onDragCancel = {
@@ -249,7 +252,6 @@ fun LandscapeContent(){
                                             }
                                             isDragging = false
                                             commandSent = false
-                                            bLog.add("Stopping Car...")
                                             currentDirection = ""
                                         },
                                         onDrag = { change, dragAmount ->
