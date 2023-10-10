@@ -3,6 +3,7 @@ package com.example.robot
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.util.Log
@@ -69,6 +70,8 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice;
+import java.io.IOException
+import java.util.UUID
 
 @Composable
 fun HomeScreen() {
@@ -96,6 +99,7 @@ fun HomeScreen() {
 
 @Composable
 fun LandscapeContent(){
+    //get the list of paired devices
     val bluetoothManager: BluetoothManager = BluetoothManager.getInstance()
     val pairedDevices: Collection<BluetoothDevice> = bluetoothManager.pairedDevicesList
     for (device in pairedDevices) {
@@ -110,6 +114,7 @@ fun LandscapeContent(){
         Log.d("My Bluetooth App", "Device name: " + device.name)
         Log.d("My Bluetooth App", "Device MAC Address: " + device.address)
     }
+
 
     //Logs from commands and bluetooth buffer
     val bLog = remember { mutableStateListOf("Curex 1 logs!") }
