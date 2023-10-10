@@ -1,13 +1,16 @@
 package com.example.robot
 
+import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,11 +25,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -37,7 +38,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -58,11 +59,16 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.example.robot.shapes.DrawShape
+import com.harrysoft.androidbluetoothserial.BluetoothManager
 import kotlinx.coroutines.launch
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+
+import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice;
 
 @Composable
 fun HomeScreen() {
@@ -90,6 +96,21 @@ fun HomeScreen() {
 
 @Composable
 fun LandscapeContent(){
+    val bluetoothManager: BluetoothManager = BluetoothManager.getInstance()
+    val pairedDevices: Collection<BluetoothDevice> = bluetoothManager.pairedDevicesList
+    for (device in pairedDevices) {
+        if (ActivityCompat.checkSelfPermission(
+                LocalContext.current,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Toast.makeText(LocalContext.current, "No permissions allowed, reinstall Robot APP",  Toast.LENGTH_LONG).show()
+            return
+        }
+        Log.d("My Bluetooth App", "Device name: " + device.name)
+        Log.d("My Bluetooth App", "Device MAC Address: " + device.address)
+    }
+
     //Logs from commands and bluetooth buffer
     val bLog = remember { mutableStateListOf("Curex 1 logs!") }
     var commandSent by remember{ mutableStateOf(false) }

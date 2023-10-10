@@ -63,4 +63,9 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation("com.github.harry1453:android-bluetooth-serial:v1.1")
+
+    // RxJava is also required.
+    implementation("io.reactivex.rxjava2:rxjava:2.1.12")
+    implementation("io.reactivex.rxjava2:rxandroid:2.0.2")
 }
