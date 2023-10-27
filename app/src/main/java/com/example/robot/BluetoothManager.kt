@@ -24,6 +24,7 @@ class BluetoothManager {
     interface OnConnectionStateChangedListener {
         fun onConnected()
         fun onDisconnected()
+        fun failureConnection()
     }
 
     fun setOnConnectionStateChangedListener(listener: OnConnectionStateChangedListener) {
@@ -40,6 +41,10 @@ class BluetoothManager {
         onConnectionStateChangedListener?.onDisconnected()
     }
 
+    private fun failureConnection(){
+        onConnectionStateChangedListener?.failureConnection()
+    }
+
     fun connect(deviceAddress: String) {
         scope.launch {
             val btAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -53,8 +58,8 @@ class BluetoothManager {
                 onConnected()
                 Log.i("Bluetooth", isConnected.toString())
             } catch (e: IOException) {
-                onDisconnected()
                 isConnected = false
+                failureConnection()
                 e.printStackTrace()
             }
         }
@@ -64,15 +69,16 @@ class BluetoothManager {
         try {
             socket?.close()
             isConnected = false
+            onDisconnected()
         } catch (e: IOException) {
             e.printStackTrace()
         }
     }
 
-    fun sendCommand(command: Byte) {
+    fun sendCommand(command: Int) {
         if (isConnected) {
             try {
-                outputStream?.write(command.toInt())
+                outputStream?.write(command)
             } catch (e: IOException) {
                 e.printStackTrace()
             }
