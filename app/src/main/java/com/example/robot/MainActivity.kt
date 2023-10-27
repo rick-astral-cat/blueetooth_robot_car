@@ -1,58 +1,70 @@
 package com.example.robot
 
+import PermissionManager
 import android.Manifest
-import android.R
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.app.ActivityCompat
 import com.example.robot.ui.theme.PsBackground
 import com.example.robot.ui.theme.RobotTheme
-import java.io.IOException
-import java.util.UUID
 
 const val REQUEST_ENABLE_BT = 1
 var m_bluetoothSocket: BluetoothSocket? = null
 class MainActivity : ComponentActivity() {
+
+    private lateinit var permissionManager: PermissionManager
+
+    var someActivityResultlauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ){
+            result ->
+        if(result.resultCode == REQUEST_ENABLE_BT){
+            Log.i("MainActivity", "REGISTERED ACTIVITY")
+        }
+    }
+
+    val requestMultiplePermissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            permissions.entries.forEach {
+                Log.d("test006", "${it.key} = ${it.value}")
+            }
+        }
+    
+    
+    /*
     lateinit var mBtAdapter: BluetoothAdapter
     var mAddressDevices: ArrayAdapter<String>? = null
     var mNameDevices: ArrayAdapter<String>? = null
     var m_myUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     var m_isConnected: Boolean = false
     @RequiresApi(Build.VERSION_CODES.S)
+    */
     override fun onCreate(savedInstanceState: Bundle?) {
-        val someActivityResultlauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ){
-                result ->
-            if(result.resultCode == REQUEST_ENABLE_BT){
-                Log.i("MainActivity", "REGISTERED ACTIVITY")
-            }
-        }
-        val requestMultiplePermissions =
-            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-                permissions.entries.forEach {
-                    Log.d("test006", "${it.key} = ${it.value}")
-                }
-            }
+        
+        /*
+        
+        
         mAddressDevices = ArrayAdapter(this, R.layout.simple_list_item_1)
         mNameDevices = ArrayAdapter(this, R.layout.simple_list_item_1)
 
@@ -95,17 +107,94 @@ class MainActivity : ComponentActivity() {
             m_bluetoothSocket!!.connect()
         }
         Toast.makeText(this, "SUCCESS CONECTION", Toast.LENGTH_LONG).show()
+         */
+
         super.onCreate(savedInstanceState)
+        permissionManager = PermissionManager(this)
         setContent {
             RobotTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = PsBackground) {
-                    HomeScreen()
+                    MainUI()
                 }
             }
         }
     }
+
+
+    // Método para solicitar permisos
+    private fun requestBluetoothPermission() {
+        //permissionManager.requestPermission(android.Manifest.permission.BLUETOOTH, YOUR_PERMISSION_REQUEST_CODE)
+        requestMultiplePermissions.launch(arrayOf(
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_ADVERTISE,
+            Manifest.permission.BLUETOOTH_PRIVILEGED,
+        ))
+        val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        someActivityResultlauncher.launch(enableBtIntent)
+    }
+
+    // Verificar si el permiso está concedido
+    private fun checkBluetoothPermission() {
+        if (permissionManager.isPermissionGranted(android.Manifest.permission.BLUETOOTH)) {
+            // El permiso está concedido, puedes usar Bluetooth aquí
+            Log.i("Bluetoothpermission", "Permission already granted")
+        } else {
+            // El permiso no está concedido, solicita permiso
+            requestBluetoothPermission()
+        }
+    }
+
+    @Composable
+    fun MainUI() {
+        Column {
+            BluetoothUI()
+        }
+    }
+
+    @Composable
+    fun BluetoothUI() {
+        val bluetoothManager = remember { BluetoothManager() }
+        var isConnected by remember { mutableStateOf(false)}
+        bluetoothManager.setOnConnectionStateChangedListener(object : BluetoothManager.OnConnectionStateChangedListener{
+            override fun onConnected() {
+                Log.i("Bluetooth", "Evento de conexión escuchado")
+                isConnected = true
+            }
+
+            override fun onDisconnected() {
+                // Actualizar la interfaz de usuario cuando la conexión se pierda
+                Log.i("Bluetooth", "Evento de desconexión escuchado")
+                isConnected = false
+            }
+        })
+        Button(onClick = { checkBluetoothPermission() }) {
+            Text("request Permission")
+        }
+
+        if (isConnected) {
+            Text("Bluetooth Connected")
+        } else {
+            Text("Bluetooth Disconnected")
+        }
+
+        if (isConnected and permissionManager.isPermissionGranted(android.Manifest.permission.BLUETOOTH)) {
+            // Botones u otros elementos de la interfaz para enviar comandos
+            Button(onClick = { bluetoothManager.sendCommand(100) }) {
+                Text("Enviar Comando")
+            }
+        } else {
+            // Botón para conectarse
+            Button(onClick = { bluetoothManager.connect("58:56:00:00:83:25") }) {
+                Text("Conectar a Bluetooth")
+            }
+        }
+    }
 }
+
 
 @Preview(
     showBackground = true,
